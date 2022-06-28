@@ -101,7 +101,9 @@ PayTax::PayTax(BudgetManager& budget_manager, const Date& start, const Date& end
 
 void PayTax::Execute()
 {
-  for (auto i = Date::ComputeDistance(BudgetManager::START_DATE, m_start); i <= Date::ComputeDistance(BudgetManager::START_DATE, m_end); ++i) {
+  auto e = Date::ComputeDistance(BudgetManager::START_DATE, m_end);
+  auto s = Date::ComputeDistance(BudgetManager::START_DATE, m_start);
+  for (auto i = s; i <= e; ++i) {
     m_budget_manager.GetDays()[i].GetMoneyCount() *= 0.87;
   }
 }
