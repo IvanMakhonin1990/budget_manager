@@ -55,55 +55,43 @@ ComputeIncome::ComputeIncome(BudgetManager& budget_manager, const Date& start, c
 {
 }
 
-void ComputeIncome::Execute()
-{
-  auto s = m_budget_manager.GetDays().begin() + Date::ComputeDistance(BudgetManager::START_DATE, m_start);
-  auto e = m_budget_manager.GetDays().begin() + Date::ComputeDistance(BudgetManager::START_DATE, m_end) + 1;
+void ComputeIncome::Execute() {
+  auto s = m_budget_manager.GetDays().begin() +
+           Date::ComputeDistance(BudgetManager::START_DATE, m_start);
+  auto e = m_budget_manager.GetDays().begin() +
+           Date::ComputeDistance(BudgetManager::START_DATE, m_end) + 1;
 
-  //std::cout << std::accumulate(s, e, 0.0, [](double v, const Day& d) {
-  //    return v + d.GetMoneyCount(); 
-  //    }) << std::endl;
-  auto result = std::accumulate(s, e, 0.0, [](double v, const Day& d) {
-    return v + d.GetMoneyCount();
-    });
+  // std::cout << std::accumulate(s, e, 0.0, [](double v, const Day& d) {
+  //     return v + d.GetMoneyCount();
+  //     }) << std::endl;
+  auto result = std::accumulate(
+      s, e, 0.0, [](double v, const Day &d) { return v + d.GetMoneyCount(); });
   std::cout << result << std::endl;
-  /*std::cout << std::reduce(s, e, 0.0, [](double v, const Day& d) {
-      return v + d.GetMoneyCount();
-      }) << std::endl;
-
-  {
-      auto t1 = std::chrono::high_resolution_clock::now();
-      auto result = std::accumulate(s, e, 0.0, [](double v, const Day& d) {
-      return v + d.GetMoneyCount();
-      });
-      auto t2 = std::chrono::high_resolution_clock::now();
-      std::chrono::duration<double, std::milli> ms = t2 - t1;
-      std::cout << std::fixed << "std::accumulate result " << result
-          << " took " << ms.count() << " ms\n";
-  }
-
-  {
-      auto t1 = std::chrono::high_resolution_clock::now();
-      std::vector<double> v1(std::distance(s, e));
-      std::transform(std::execution::par, s, e, v1.begin(), [](const Day& d) {return d.GetMoneyCount(); });
-
-      double result = std::reduce(std::execution::par, v1.begin(), v1.end());
-      auto t2 = std::chrono::high_resolution_clock::now();
-      std::chrono::duration<double, std::milli> ms = t2 - t1;
-      std::cout << "std::reduce result "
-          << result << " took " << ms.count() << " ms\n";
-  }*/
 }
 
-PayTax::PayTax(BudgetManager& budget_manager, const Date& start, const Date& end) : Request(budget_manager, start, end)
-{
-}
+PayTax::PayTax(BudgetManager &budget_manager, const Date &start,
+               const Date &end, double tax_rate)
+    : Request(budget_manager, start, end), m_tax_rate(tax_rate) {}
 
 void PayTax::Execute()
 {
   auto e = Date::ComputeDistance(BudgetManager::START_DATE, m_end);
   auto s = Date::ComputeDistance(BudgetManager::START_DATE, m_start);
   for (auto i = s; i <= e; ++i) {
-    m_budget_manager.GetDays()[i].GetMoneyCount() *= 0.87;
+    m_budget_manager.GetDays()[i].GetMoneyCount() *= ((100.0-m_tax_rate)/100.0);
   }
 }
+
+void Spend::Execute() {
+  auto s = Date::ComputeDistance(BudgetManager::START_DATE, m_start);
+  auto e = Date::ComputeDistance(BudgetManager::START_DATE, m_end);
+  double earn = m_total_earn / (static_cast<double>(e - s + 1));
+
+  for (auto i = s; i <= e; ++i) {
+    m_budget_manager.GetDays()[i].AddEarn(-earn);
+  }
+}
+
+Spend::Spend(BudgetManager &budget_manager, const Date &start, const Date &end,
+             double total_earn)
+    : Request(budget_manager, start, end), m_total_earn(total_earn) {}

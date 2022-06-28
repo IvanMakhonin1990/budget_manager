@@ -22,7 +22,9 @@ void ParseAndProcessQuery(BudgetManager& manager, string_view line) {
     ci.Execute();
   }
   else if ("PayTax" == req_name) {
-    PayTax pt(manager, s, e);
+    double tax_rate;
+    ss >> tax_rate;
+    PayTax pt(manager, s, e, tax_rate);
     pt.Execute();
   }
   else if ("Earn"sv == req_name) {
@@ -30,6 +32,11 @@ void ParseAndProcessQuery(BudgetManager& manager, string_view line) {
     ss >> income;
     Earn er(manager, s, e, income);
     er.Execute();
+  } else if ("Spend"sv == req_name) {
+    double income;
+    ss >> income;
+    Spend sp(manager, s, e, income);
+    sp.Execute();
   }
 }
 
