@@ -51,10 +51,10 @@ void Earn::Execute()
   auto s = Date::ComputeDistance(BudgetManager::START_DATE, m_start);
   auto e = Date::ComputeDistance(BudgetManager::START_DATE, m_end);
   double earn = m_total_earn / (static_cast<double>(e - s + 1));
-  std::for_each(std::execution::par, m_budget_manager.GetDays().begin() + s, m_budget_manager.GetDays().begin() + e + 1, [&earn](Day& d) {d.AddEarn(earn); });
-  //for (auto i = s; i <= e; ++i) {
-  //  m_budget_manager.GetDays()[i].AddEarn(earn);
-  //}
+
+  for (auto i = s; i <= e; ++i) {
+    m_budget_manager.GetDays()[i].AddEarn(earn);
+  }
 }
 
 Earn::Earn(BudgetManager& budget_manager, const Date& start, const Date& end, double total_earn)
@@ -70,23 +70,37 @@ void ComputeIncome::Execute()
   auto s = m_budget_manager.GetDays().begin() + Date::ComputeDistance(BudgetManager::START_DATE, m_start);
   auto e = m_budget_manager.GetDays().begin() + Date::ComputeDistance(BudgetManager::START_DATE, m_end) + 1;
 
-  std::vector<double> v(std::distance(s, e));
-  std::transform(std::execution::par, s, e,v.begin(),  [](const Day& d) {return d.GetMoneyCount(); });
-  double r = std::reduce(std::execution::par, v.begin(), v.end(), 0);
-  std::cout << r << std::endl;
-  //auto result = std::accumulate(s, e, 0.0, [](double v, const Day& d) {
-  //  return v + d.GetMoneyCount();
-  //  });
-  //std::cout << result << std::endl;
+  // std::cout << std::accumulate(s, e, 0.0, [](double v, const Day& d) {
+  //     return v + d.GetMoneyCount();
+  //     }) << std::endl;
+  auto result = std::accumulate(
+      s, e, 0.0, [](double v, const Day &d) { return v + d.GetMoneyCount(); });
+  std::cout << result << std::endl;
 }
 
-PayTax::PayTax(BudgetManager& budget_manager, const Date& start, const Date& end) : Request(budget_manager, start, end)
-{
-}
+PayTax::PayTax(BudgetManager &budget_manager, const Date &start,
+               const Date &end, double tax_rate)
+    : Request(budget_manager, start, end), m_tax_rate(tax_rate) {}
 
 void PayTax::Execute()
 {
-  for (auto i = Date::ComputeDistance(BudgetManager::START_DATE, m_start); i <= Date::ComputeDistance(BudgetManager::START_DATE, m_end); ++i) {
-    m_budget_manager.GetDays()[i].GetMoneyCount() *= 0.87;
+  auto e = Date::ComputeDistance(BudgetManager::START_DATE, m_end);
+  auto s = Date::ComputeDistance(BudgetManager::START_DATE, m_start);
+  for (auto i = s; i <= e; ++i) {
+    m_budget_manager.GetDays()[i].GetMoneyCount() *= ((100.0-m_tax_rate)/100.0);
   }
 }
+
+void Spend::Execute() {
+  auto s = Date::ComputeDistance(BudgetManager::START_DATE, m_start);
+  auto e = Date::ComputeDistance(BudgetManager::START_DATE, m_end);
+  double earn = m_total_earn / (static_cast<double>(e - s + 1));
+
+  for (auto i = s; i <= e; ++i) {
+    m_budget_manager.GetDays()[i].AddEarn(-earn);
+  }
+}
+
+Spend::Spend(BudgetManager &budget_manager, const Date &start, const Date &end,
+             double total_earn)
+    : Request(budget_manager, start, end), m_total_earn(total_earn) {}

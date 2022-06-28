@@ -24,6 +24,16 @@ private:
   double m_total_earn = 0;
 };
 
+class Spend : public Request {
+public:
+  void Execute() override;
+  Spend(BudgetManager &budget_manager, const Date &start, const Date &end,
+       double total_earn);
+
+private:
+  double m_total_earn = 0;
+};
+
 class ComputeIncome : public Request {
 public:
   ComputeIncome(BudgetManager& budget_manager, const Date& start, const Date& end);
@@ -32,8 +42,11 @@ public:
 
 class PayTax : public Request {
 public:
-  PayTax(BudgetManager& budget_manager, const Date& start, const Date& end);
+  PayTax(BudgetManager& budget_manager, const Date& start, const Date& end, double tax_rate);
   void Execute() override;
+
+  private:
+  double m_tax_rate = 0;
 };
 
 class Day {
