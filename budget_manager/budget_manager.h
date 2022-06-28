@@ -52,16 +52,16 @@ public:
 class Day {
 public:
   Day();
-  explicit Day(double money_count, double tax);
+  explicit Day(double money_count, double spend);
   double GetMoneyCount() const;
   double& GetMoneyCount();
   void AddEarn(double earn);
-  void AddTax(double tax);
-  double GetTaxCount();
+  void AddSpend(double spend);
+  double GetSpendCount() const;
 
 private:
   double m_money_count = 0;
-  double m_tax_count = 0;
+  double m_spend_count = 0;
 };
 
 class BudgetManager {

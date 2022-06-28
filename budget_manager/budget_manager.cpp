@@ -6,11 +6,11 @@
 #include <execution>
 // разработайте менеджер личного бюджета самостоятельно
 
-Day::Day() :m_money_count(0), m_tax_count(0)
+Day::Day() :m_money_count(0), m_spend_count(0)
 {
 }
 
-Day::Day(double money_count, double tax) :m_money_count(std::move(money_count)), m_tax_count(std::move(tax)) {}
+Day::Day(double money_count, double spend) :m_money_count(std::move(money_count)), m_spend_count(std::move(spend)) {}
 
 double Day::GetMoneyCount() const { return m_money_count; }
 
@@ -24,14 +24,14 @@ void Day::AddEarn(double earn)
   m_money_count += earn;
 }
 
-void Day::AddTax(double tax)
+void Day::AddSpend(double spend)
 {
-  m_tax_count += tax;
+  m_spend_count += spend;
 }
 
-double Day::GetTaxCount()
+double Day::GetSpendCount() const
 {
-  return m_tax_count;
+  return m_spend_count;
 }
 
 BudgetManager::BudgetManager() : m_days(Date::ComputeDistance(START_DATE, END_DATE) + 1) {
@@ -74,7 +74,7 @@ void ComputeIncome::Execute()
   //     return v + d.GetMoneyCount();
   //     }) << std::endl;
   auto result = std::accumulate(
-      s, e, 0.0, [](double v, const Day &d) { return v + d.GetMoneyCount(); });
+      s, e, 0.0, [](double v, const Day &d) { return v + d.GetMoneyCount() - d.GetSpendCount(); });
   std::cout << result << std::endl;
 }
 
@@ -94,10 +94,10 @@ void PayTax::Execute()
 void Spend::Execute() {
   auto s = Date::ComputeDistance(BudgetManager::START_DATE, m_start);
   auto e = Date::ComputeDistance(BudgetManager::START_DATE, m_end);
-  double earn = m_total_earn / (static_cast<double>(e - s + 1));
+  double spend = m_total_earn / (static_cast<double>(e - s + 1));
 
   for (auto i = s; i <= e; ++i) {
-    m_budget_manager.GetDays()[i].AddEarn(-earn);
+    m_budget_manager.GetDays()[i].AddSpend(spend);
   }
 }
 
