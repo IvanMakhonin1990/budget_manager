@@ -17,13 +17,10 @@ struct BulkMoneySpender {
 
 struct BulkTaxApplier {
     double ComputeFactor() const {
-        static const double factor = 0.87;
-        //return std::pow(m_tax_rate > 0.0 ? m_tax_rate : factor, count);
-        return std::pow(m_tax_rate, count);
+        return m_tax_rate;
     }
 
-    int count = 0;
-    double m_tax_rate = 0.0;
+    double m_tax_rate = 1.0;
 };
 
 class BulkLinearUpdater {
@@ -41,14 +38,14 @@ public:
     BulkLinearUpdater(const BulkMoneySpender &spend) : spend_(spend) {}
 
     void CombineWith(const BulkLinearUpdater& other) {
-        tax_.count *= other.tax_.count;
+        tax_.m_tax_rate *= other.tax_.m_tax_rate;
         add_.delta = add_.delta * other.tax_.ComputeFactor() + other.add_.delta;
         spend_.delta += other.spend_.delta;
     }
     DayData Collapse(DayData origin, IndexSegment segment) const {
       return {origin.income * tax_.ComputeFactor() + add_.delta *
                        static_cast<double>(segment.length()),
-              spend_.delta * static_cast<double>(segment.length())};
+              origin.spend + spend_.delta * static_cast<double>(segment.length())};
     }
 
 private:

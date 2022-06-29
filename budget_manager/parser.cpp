@@ -1,6 +1,9 @@
 #include "parser.h"
+#include "entities.h"
 
 using namespace std;
+
+
 
 namespace queries {
 class ComputeIncome : public ComputeQuery {
@@ -80,7 +83,7 @@ public:
 
     void Process(BudgetManager& budget) const override {
       budget.AddBulkOperation(GetFrom(), GetTo(),
-                              BulkTaxApplier{1, m_tax_rate});
+                              BulkTaxApplier{m_tax_rate});
     }
 
     class Factory : public QueryFactory {

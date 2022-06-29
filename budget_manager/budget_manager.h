@@ -19,8 +19,8 @@ public:
     }
 
     double ComputeSum(Date from, Date to) const {
-        auto t= tree_.ComputeSum(MakeDateSegment(from, to));
-      return t.income - t.spend;
+      auto sum = tree_.ComputeSum(MakeDateSegment(from, to));
+      return sum.income - sum.spend;
     }
 
     void AddBulkOperation(Date from, Date to, const BulkLinearUpdater& operation) {
