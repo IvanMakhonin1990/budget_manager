@@ -1,4 +1,5 @@
 #include "budget_manager.h"
+/*#include "budget_manager.h"
 
 #include <algorithm>
 #include <numeric>
@@ -104,3 +105,10 @@ void Spend::Execute() {
 Spend::Spend(BudgetManager &budget_manager, const Date &start, const Date &end,
              double total_earn)
     : Request(budget_manager, start, end), m_total_earn(total_earn) {}
+
+    */
+
+DayData operator+(const DayData lhs, const DayData &rhs) {
+
+  return { lhs.income + rhs.income, lhs.spend + rhs.spend };
+}

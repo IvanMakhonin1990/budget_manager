@@ -1,79 +1,32 @@
 #pragma once
-#include <vector>
-
+#include "bulk_updater.h"
 #include "date.h"
+#include "entities.h"
 
-class BudgetManager;
-
-class Request {
-public:
-  Request(BudgetManager& budget_manager, const Date& start, const Date& end);
-  virtual void Execute() = 0;
-protected:
-  BudgetManager& m_budget_manager;
-  Date m_start;
-  Date m_end;
-};
-
-
-class Earn : public Request {
-public:
-  void Execute() override;
-  Earn(BudgetManager& budget_manager, const Date& start, const Date& end, double total_earn);
-private:
-  double m_total_earn = 0;
-};
-
-class Spend : public Request {
-public:
-  void Execute() override;
-  Spend(BudgetManager &budget_manager, const Date &start, const Date &end,
-       double total_earn);
-
-private:
-  double m_total_earn = 0;
-};
-
-class ComputeIncome : public Request {
-public:
-  ComputeIncome(BudgetManager& budget_manager, const Date& start, const Date& end);
-  void Execute() override;
-};
-
-class PayTax : public Request {
-public:
-  PayTax(BudgetManager& budget_manager, const Date& start, const Date& end, double tax_rate);
-  void Execute() override;
-
-  private:
-  double m_tax_rate = 0;
-};
-
-class Day {
-public:
-  Day();
-  explicit Day(double money_count, double spend);
-  double GetMoneyCount() const;
-  double& GetMoneyCount();
-  void AddEarn(double earn);
-  void AddSpend(double spend);
-  double GetSpendCount() const;
-
-private:
-  double m_money_count = 0;
-  double m_spend_count = 0;
-};
+#include <vector>
 
 class BudgetManager {
 public:
-  inline static const Date START_DATE{ 2000, 1, 1 };
-  inline static const Date END_DATE{ 2100, 1, 1 };
+    inline static const Date START_DATE{2000, 1, 1};
+    inline static const Date END_DATE{2100, 1, 1};
 
-public:
-  BudgetManager();
-  std::vector<Day>& GetDays();
+    static size_t GetDayIndex(Date day) {
+        return static_cast<size_t>(Date::ComputeDistance(START_DATE, day));
+    }
+
+    static IndexSegment MakeDateSegment(Date from, Date to) {
+        return {GetDayIndex(from), GetDayIndex(to) + 1};
+    }
+
+    double ComputeSum(Date from, Date to) const {
+        auto t= tree_.ComputeSum(MakeDateSegment(from, to));
+      return t.income - t.spend;
+    }
+
+    void AddBulkOperation(Date from, Date to, const BulkLinearUpdater& operation) {
+        tree_.AddBulkOperation(MakeDateSegment(from, to), operation);
+    }
 
 private:
-  std::vector<Day> m_days;
-  // разработайте класс BudgetManager
+    SummingSegmentTree<DayData, BulkLinearUpdater> tree_{GetDayIndex(END_DATE)};
 };
